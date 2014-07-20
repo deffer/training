@@ -1,0 +1,328 @@
+------------
+   STEP 0
+------------
+{"settings":{"index":{
+    "analysis":{
+    "analyzer":{
+                "sb_analyzer":{"type":"snowball","language":"English"}
+             }
+     },
+    "number_of_shards" : "1"
+}}}
+
+
+------------
+   STEP 1
+------------
+{"person":{
+	"properties":{
+		"dob":{"type":"date", "format": "yyyy-MM-dd", "index":"not_analyzed"},
+		"name":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"interests":{"type":"string", "index":"not_analyzed"},
+		"group":{"type":"long", "index":"not_analyzed"},
+		"description":{"type":"string", "analyzer":"sb_analyzer"},
+		"keywords":{"type":"string", "analyzer":"sb_analyzer", boost: "5.0"},
+		"articles":{
+			"type" : "object",
+			"properties":{
+				"type":{"type":"string", "index":"no"},
+				"topic" :{"type":"string", "index":"not_analyzed"},
+				"title":{"type":"string", "boost":"2.0"},
+				"body":{"type":"string", "analyzer":"sb_analyzer"}
+			}
+		}
+	}}
+}
+
+------------
+   STEP 2.1
+------------
+POST http://localhost:9200/cat/person/1
+{
+"dob": "1879-03-14",
+"name" : "Albert",
+"interests": ["politics", "physics", "music"],
+"group" : 2,
+"description" : "While this did allow potential cool ideas like having library shaders that contained extra code that the main shaders could call, what it meant in practice was that shaders were compiled twice. Once in the compilation stage and once in the linking stage. NVIDIA's compiler in particular was known for basically running the compile twice. It didn't generate some kind of object code intermediary; it just compiled it once and threw away the answer, then compiled it again at link time.",
+"keywords": ["physics", "relativity", "violin"],
+"articles" : [
+  {"type":"public article", "topic": "physics", "title":"Science and Religion","body": "For the scientific method can teach us nothing else beyond how facts are related to, and conditioned by, each other. The aspiration toward such objective knowledge belongs to the highest of which man is capabIe, and you will certainly not suspect me of wishing to belittle the achievements and the heroic efforts of man in this sphere. Yet it is equally clear that knowledge of what is does not open the door directly to what should be. One can have the clearest and most complete knowledge of what is, and yet not be able to deduct from that what should be the goal of our human aspirations. Objective knowledge provides us with powerful instruments for the achievements of certain ends, but the ultimate goal itself and the longing to reach it must come from another source. And it is hardly necessary to argue for the view that our existence and our activity acquire meaning only by the setting up of such a goal and of corresponding values. The knowledge of truth as such is wonderful, but it is so little capable of acting as a guide that it cannot prove even the justification and the value of the aspiration toward that very knowledge of truth. Here we face, therefore, the limits of the purely rational conception of our existence."}, 	
+  {"type":"public article", "topic": "politics", "title":"Why Socialism", "body":"Private capital tends to become concentrated in few hands, partly because of competition among the capitalists, and partly because technological development and the increasing division of labor encourage the formation of larger units of production at the expense of smaller ones. The result of these developments is an oligarchy of private capital the enormous power of which cannot be effectively checked even by a democratically organized political society"}
+]
+}
+
+-------------------
+   STEP 2.2-2.7
+-------------------
+POST http://localhost:9200/cat/person/_bulk
+
+{ "index" : { "_id": 2} } 
+{"dob": "1473-01-01","name" : "Nicolaus Copernicus","interests": ["economy","astronomy", "languages"],"group" : 1515,"description" : "The rule of thumb is simple – the farther away the client current location is from his billing address, the higher chance we’re dealing with a fraud transaction. The chance of fraud increases even more when the location is confirmed from a set of high-risk countries (mentioned above in the list of indicators).","keywords": ["astronomy", "heliocentric", "money"],"articles" : [  {"type":"public article", "topic": "astronomy", "title":"De revolutionibus orbium coelestium","body": "Copernicus argued that the universe comprised eight spheres. The outermost consisted of motionless, fixed stars, with the Sun motionless at the center. The known planets revolved about the Sun, each in its own sphere, in the order: Mercury, Venus, Earth, Mars, Jupiter, Saturn. The Moon, however, revolved in its sphere around the Earth. What appeared to be the daily revolution of the Sun and fixed stars around the Earth was actually the Earth's daily rotation on its own axis."},  {"type":"public article", "topic": "politics", "title":"Nicolai Copernici de hypothesibus motuum coelestium a se constitutis commentariolus", "body":"Celestial bodies do not all revolve around a single point. The centre of Earth is the centre of the lunar sphere—the orbit of the moon around the Earth. All the spheres rotate around the Sun, which is near the centre of the Universe. The distance between the Earth and the Sun is an insignificant fraction of the distance from the Earth and Sun to the stars, so parallax is not observed in the stars. The stars are immovable; their apparent daily motion is caused by the daily rotation of the Earth. Earth is moved in a sphere around the Sun, causing the apparent annual migration of the Sun; the Earth has more than one motion Earth's orbital motion around the Sun causes the seeming reverse in direction of the motions of the planets."}]}
+{ "index" : { "_id":3} }
+{"dob": "1976-01-01","name" : "Anna Maria Gonzales","interests": ["economy","languages"],"group" : 7,"description" : "Object-oriented programming lets programmers create procedures for objects whose exact type is not known until runtime. For example, a screen cursor may change its shape from an arrow to a line depending on the program mode. The routine to move the cursor on screen in response to mouse movement can be written for cursor, and polymorphism lets that cursor take whatever shape it requires at runtime. It also lets new shapes be easily integrated.","keywords": ["patent", "berlin", "biotech"],"articles" : [  {"type":"internet article", "topic": "economy", "title":"Real estate boom","body": "In this odd environment, two types of people are coming into conflict: On the one hand, there are the foreigners, or new Berliners, who are looking for something to buy. On the other, there are the locals, the old Berliners, who wonder how much longer they'll be able to stay. Those in the first group tend to look up as they walk the streets, checking out buildings and looking for good investments. Those in the second are just trying to get home."}  ]}
+{ "index" : { "_id": 4 } }
+{ "dob": "1980-01-01","name" : "Anna Alice","interests": ["software", "biotechnology","physics"],"group" : 37,"description" : "Duck-wrapping (verb): If it doesn't quack like a duck, wrap it in a duck. JavaScript has an problematic idiom that I have come to consider a code-smell: functions that wrap some values (based on their type) in other types. I consider this to be an issue because it impairs the ease at which you can reason about the code in question, and it can complicate some logic with extra boilerplate.","keywords": ["java", "closure", "biotech"],"articles" : [  {"type":"internet article", "topic": "software", "title":"MongoDB indices optimization","body": "MongoDB's optimizer chooses an index for a query in two phases. First it looks for a prima facie optimal index for the query. Second, if no such index exists it runs an experiment to see which index actually performs best. The optimizer remembers its choice for all similar queries. (Until a thousand documents are modified or an index is added or removed.)"},  {"type":"internet article", "topic": "biotechnology", "title":"Cells differentiation","body": "Each specialized cell type in an organism expresses a subset of all the genes that constitute the genome of that species. Each cell type is defined by its particular pattern of regulated gene expression. Cell differentiation is thus a transition of a cell from one cell type to another and it involves a switch from one pattern of gene expression to another. Cellular differentiation during development can be understood as the result of a gene regulatory network. A regulatory gene and its cis-regulatory modules are nodes in a gene regulatory network; they receive input and create output elsewhere in the network."}]}
+{ "index" : {  "_id": 5} }
+{"dob": "1985-05-05","name" : "Bob","interests": ["network"],"group" : 35,"description" : "We'll use SSH to create a pair of secured network tunnels that we can use to send and receive our unencrypted email. You might be able to create just one tunnel for retrieving email, but some providers won't let you send via SMTP unless you recently checked your email from the same machine. To keep them from thinking we're spammers, we'll create tunnels for both connections.","keywords": ["security"],"articles" : [  {"type":"internet article", "topic": "security", "title":"How-To: SSH tunnels for secure network access","body": "Here's our example network setup. The laptop is connected to the Internet through an untrusted wireless access point. If we don't own it, we don't trust it. More importantly, we shouldn't trust any of the other wireless network users."}]} 
+{ "index" : { "_id":6} }
+{"dob": "1986-06-06","name" : "Eve","interests": ["security"],"group" : 36,"description" : "Here's our example network setup. The laptop is connected to the Internet through an untrusted wireless access point. If we don't own it, we don't trust it. More importantly, we shouldn't trust any of the other wireless network users.","keywords": ["network"],"articles" : [  {"type":"internet article", "topic": "security", "title":"How-To: SSH tunnels for secure network access","body": "We'll use SSH to create a pair of secured network tunnels that we can use to send and receive our unencrypted email. You might be able to create just one tunnel for retrieving email, but some providers won't let you send via SMTP unless you recently checked your email from the same machine. To keep them from thinking we're spammers, we'll create tunnels for both connections."}]}
+{ "index" : { "_id":7} }
+{"dob": "1986-06-06","name" : "Eve","interests": ["security"],"group" : 36,"description" : "Here's our example network setup. The laptop is connected to the Internet through an untrusted wireless access point.","keywords": ["network"],"articles" : [  {"type":"internet article", "topic": "security", "title":"How-To: SSH tunnels for secure network access","body": "We'll use SSH to create a pair of secured network tunnels that we can use to send and receive our unencrypted email. You might be able to create just one tunnel for retrieving email, but some providers won't let you send via SMTP unless you recently checked your email from the same machine. To keep them from thinking we're spammers, we'll create tunnels for both connections."}]}
+
+
+
+------------
+   STEP 3
+------------
+http://localhost:9200/cat/person/_search?q=description:library
+http://localhost:9200/cat/person/_search?q=articles.body:sun
+http://localhost:9200/cat/person/_search?q=sun verb
+http://localhost:9200/cat/person/_search?q=sun verb&default_operator=AND
+
+http://localhost:9200/cat/person/_search?q=articles.\*:physics
+http://localhost:9200/cat/person/_search?q=description:re*
+http://localhost:9200/cat/person/_search?q=description:security
+
+------------
+   STEP 4
+------------
+http://localhost:9200/cat/person/_search?q=description:secured&analyzer=default
+http://localhost:9200/cat/person/_search?q=description:secur&analyzer=default
+
+http://localhost:9200/cat/person/_search?q=interests:Music
+http://localhost:9200/cat/person/_search?q=interests:music
+http://localhost:9200/cat/person/_search?q=interests:Music&analyzer=default
+
+http://localhost:9200/cat/person/_search?q=function
+http://localhost:9200/cat/person/_search?q=description:function
+
+------------
+   STEP 5
+------------
+http://localhost:9200/cat/person/_search?q=keywords:security OR interests:security&explain=true
+http://localhost:9200/cat/person/_search?q=description:some
+http://localhost:9200/cat/person/_search?q=description:setup
+http://localhost:9200/cat/person/_search?q=description:some OR description:recently
+
+IDF:
+http://localhost:9200/cat/person/_search?q=description:type%20OR%20description:recently&fields=description
+
+------------
+   STEP 6
+------------
+POST http://localhost:9200/cat/person/_search
+
+{
+"query":  { 
+	"query_string" : {
+		"query": "duck",
+		"fields": ["names", "interests", "description", "keywords", "articles.*" ]
+	}
+ },
+fields: [
+"dob", "name", "interests", "favorites", "description", "keywords"
+],
+ highlight: {
+    fields: {names:{}, interests:{}, description:{}, keywords:{}, "articles.body":{}, "articles.title":{}}
+ },
+ from: 0,
+ size: 100
+}
+
+------------
+   STEP 7
+------------
+"query":  {
+	"term": {"articles.topic" : "economy"}      	 
+}
+   
+"query":  {
+	"bool" : {
+		"must": {
+			"query_string" : {
+				"query" : "anna",
+				"fields": ["names", "interests", "description", "keywords", "articles.body" ]
+			}
+		},
+		"must_not" :{
+			"term": {"dob" : "1980-01-01"}
+		}
+	}
+}
+
+"query":  { 
+	"fuzzy_like_this" : {
+		"like_text": "eleswhere",
+		"fields": ["names", "interests", "description", "keywords", "articles.body" ]
+   }
+}
+
+"query":  {  
+	"range" : {
+		"favorites" :{ 
+			"gte": 30, 
+			"lte": 38 
+		}
+	}   
+}
+
+"query":  {
+   "span_near" : {
+ 	"clauses" : [
+		{ "span_term" : { "_all": "wrap" } },
+		{ "span_term" : { "_all": "duck" } }
+ 	],
+ 	"slop" :0,
+ 	"in_order" : true,
+ 	"collect_payloads" : false
+   }
+ }}
+
+"query":  {
+	"constant_score" : {
+		"filter": {"term": {"articles.topic":"economy"}}
+	}
+}
+
+"query": {
+	"filtered": {
+		"query": {
+			"query_string": {
+				“query" : "each",
+				"fields": ["description", "articles.body" ]
+			}
+		},
+		"filter" : {  
+			"range" : {
+				"favorites" :{ "gte": 2, "lte": "4" }
+			}   
+		}
+	}  
+}
+
+{
+"query":  {
+	"match_all" : {}  
+},
+"facets" : {
+	"range1" : {
+		"range" : { 
+			"field" : "dob", 
+			"ranges" : [
+				{ "to" : "1474-01-01" },
+				{ "from" : "1474-01-01", "to" : "1900-01-01" }, 
+				{"from" :"1900-01-01" }
+			]
+		}
+	}
+}
+}
+
+------------
+   STEP 8
+------------
+git clone https://github.com/rvowles/bathe-example-war.git
+
+<dependency>
+	<groupId>nz.ac.auckland.search</groupId>
+	<artifactId>uoa-elastic-embedded</artifactId>
+	<version>[3.6,4)</version>
+</dependency>
+
+mvn bathe:run
+
+------------
+Links
+------------
+http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-core-types.html
+
+http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-queries.html
+http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax
+http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-filters.html
+http://www.elasticsearch.org/guide/reference/api/search/facets
+
+------------
+Examples
+------------
+{"person":{
+	"_all": {"enabled" : true, "analyzer":"default"},
+	"_timestamp" : {enabled : true , format: "date_time"},
+	"_source" : {enabled: true},
+	"properties":{
+		"dob":{"type":"date", "format": "yyyy-MM-dd", "store":"yes", "index":"not_analyzed"},
+		"names":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"interests":{"type":"string", "store":"yes", "index":"not_analyzed"},
+		"favorites":{"type":"long", "store":"yes", "index":"not_analyzed"},
+		"description":{"type":"string", "store":"yes", "index":"analyzed", "analyzer":"sb_analyzer"},
+		"keywords":{"type":"string", "store":"yes", "index":"analyzed", "analyzer":"sb_analyzer", boost: "5.0"},
+		"articles":{
+			"type" : "object",
+			"properties":{
+				"type":{"type":"string", "store":"yes", "index":"no"},
+				"topic" :{"type":"string", "store":"yes", "index":"not_analyzed"},
+				"title":{"type":"string", "store":"yes", "index":"analyzed", "boost":"2.0"},
+				"body":{"type":"string", "store":"yes", "index":"analyzed", "analyzer":"sb_analyzer"}
+			}
+		}
+	}}
+}
+
+POST
+http://localhost:9200/library/author/_mapping
+
+{"author":{
+	"_all": {"enabled" : true, "analyzer":"default"},
+	"_timestamp" : {enabled : true , format: "date_time"},
+	"_source" : {enabled: true},
+	"properties":{
+		"dob":{"type":"date", "format": "yyyy-MM-dd", "store":"yes", "index":"not_analyzed"},
+		"names":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"favorites":{"type":"long", "store":"yes", "index":"not_analyzed"},
+		"biography":{"type":"string", "store":"yes", "index":"analyzed"}
+	}}
+}
+
+POST
+http://localhost:9200/library/book/_mapping
+
+{"book":{	
+	"properties":{
+		"title":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"publication_date":{"type":"date", "format": "yyyy-MM-dd", "store":"yes", "index":"not_analyzed"},
+		"author_name":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"revision":{"type":"long", "store":"yes", "index":"not_analyzed"},
+		"intro":{"type":"string", "store":"yes", "index":"analyzed"},
+		"chapters":{"type":"string", "store":"yes", "index":"analyzed"},
+		"notes":{"type":"string", "store":"yes", "index":"analyzed"},
+		"references":{"type":"string", "store":"yes", "index":"analyzed"}
+	}}
+}
+
+POST
+http://localhost:9200/library/article/_mapping
+
+{"article":{	
+	"properties":{
+		"title":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},
+		"publication_date":{"type":"date", "format": "yyyy-MM-dd", "store":"yes", "index":"not_analyzed"},
+		"author_name":{"type":"string", "store":"yes", "index":"analyzed", "boost":"5.0"},		
+		"abstract":{"type":"string", "store":"yes", "index":"analyzed", "boost":"4.0"},
+		"body":{"type":"string", "store":"yes", "index":"analyzed"},
+		"references":{"type":"string", "store":"yes", "index":"analyzed"}
+	}}
+}
+
+
+POST
+http://localhost:9200/library/article/1
+{
+"title": "ON PROOF AND PROGRESS IN MATHEMATICS",
+"publication_date": "2014-02-12",
+"author_name":"WILLIAM P. THURSTON",
+"abstract":"This essay on the nature of proof and progress in mathematics was stimulated by the article of Ja?e and Quinn, Theoretical Mathematics: Toward a cultural synthesis of mathematics and theoretical physics. Their article raises interesting issues that mathematicians should pay more attention to, but it also perpetuates",
+"body":"There are many issues buried in this question, which I have tried to phrase in a way that does not presuppose the nature of the answer. It would not be good to start, for example, with the question How do mathematicians prove theorems? This question introduces an interesting topic, but to start with it would be to project two hidden assumptions: (1) that there is uniform, objective and ?rmly established theory and practice of mathematical proof, and (2) that progress made by mathematicians consists of proving theorems. It is worthwhile to examine these hypotheses, rather than to accept them as obvious and proceed from there. The question is not even How do mathematicians make progress in mathematics? Rather, as a more explicit (and leading) form of the question, I prefer How do mathematicians advance human understanding of mathematics.",
+"references": [
+	"Simon, Julian . THE ULTIMATE RESOURCE (Princeton, N.J. : Princeton University Press, c1981)", 
+	"Simon, Julian.  THE STATE OF HUMANITY (Blackwell, Cambridge, MA and Oxford, UK) 1995."
+	]
+}
